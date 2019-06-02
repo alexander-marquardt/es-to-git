@@ -17,7 +17,7 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/watcher-api-put-
 import os
 import argparse
 
-
+import read_es_index
 
 # Parse the command line options, to determine which section(s) of the code will be executed
 # and connect to Elasticsearch
@@ -39,7 +39,10 @@ def main():
 
     parsed_args = initial_setup()
 
-    if parsed_args.index == None:
+    if not parsed_args.index:
         print('Pass in an index name. eg. "%s -i .watches"' % os.path.basename(__file__))
+        exit(1)
+
+    read_es_index.read_all_docs_from_es_index_and_persist_to_disk(parsed_args.index)
 
 main()

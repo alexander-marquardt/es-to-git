@@ -1,9 +1,11 @@
 import logging
+import json
+import os
 
 from elasticsearch import Elasticsearch
-from elasticsearch import helpers
 
 es = Elasticsearch(["localhost:9200"])
+output_dir = "/Users/arm/PycharmProjects/es-indices-backup"
 
 
 def scroll_over_all_docs(index_name):
@@ -12,18 +14,19 @@ def scroll_over_all_docs(index_name):
         data = es.search(index=index_name, scroll='1m',  body={"query": {"match_all": {}}})
         sid = data['_scroll_id']
 
-        # Get the scroll ID
         while True:
             scroll_size = len(data['hits']['hits'])
-            print("scroll size is %d" % scroll_size)
             if scroll_size <= 0:
                 break
 
             hits = data['hits']['hits']
             for doc in hits:
                 print("document found: %s" % doc)
+                filename = os.path.join(output_dir, "idx-{}-_id-{}".format(doc['_index'], doc['_id']))
+                with open(filename, 'w') as outfile:
+                    json.dump(doc, outfile)
 
-            data = es.scroll(scroll_id=sid, scroll='2m')
+            data = es.scroll(scroll_id=sid, scroll='1m')
 
     except Exception as e:
         logging.exception(e)
